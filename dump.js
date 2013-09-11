@@ -10,6 +10,17 @@
 (function(db_file){
   var fs = require('fs');
 
+  function simplify(data){
+    return {
+      i: data.id, 
+      n: data.name, 
+      a: data.alias, 
+      y: data.pinyin, 
+      b: data.abbr, 
+      z: data.zip
+    };
+  }
+
   function dump(err, rows){
     if(err){
       console.log(err);
@@ -21,13 +32,23 @@
     });
     
     console.log("Dumping province index......\n");
-    fs.writeFileSync('json/index.json', JSON.stringify(provinces));
+    fs.writeFileSync('json/index.json', JSON.stringify(provinces.map(simplify)));
 
     console.log("Dumping cities and suburbs......\n");
+
     provinces.forEach(function(p){
-      fs.writeFileSync('json/'+p.id+'.json', JSON.stringify(rows.filter(function(row){
-        return row.id != p.id && row.id.substr(0,2) == p.id.substr(0,2);
-      })));
+      var regions = rows.filter(function(c){
+        return c.parent_id == p.id;
+      }).map(simplify)
+      .map(function(r){
+        r.c = rows.filter(function(s){
+          return s.parent_id == r.i;
+        }).map(simplify);
+        if(r.c.length == 0) delete r.c;
+        return r;
+      });
+
+      fs.writeFileSync('json/'+p.id+'.json', JSON.stringify(regions));
     });
 
     console.log("data dumping ok.\n");
