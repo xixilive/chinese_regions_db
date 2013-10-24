@@ -51,6 +51,7 @@
       fs.writeFileSync('json/'+p.id+'.json', JSON.stringify(regions));
     });
 
+    fs.writeFileSync('json/last-updated-at', new Date().toString());
     console.log("data dumping ok.\n");
   }
 
